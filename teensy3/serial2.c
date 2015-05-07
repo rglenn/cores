@@ -55,6 +55,7 @@ static uint8_t use9Bits = 0;
 static volatile BUFTYPE tx_buffer[TX_BUFFER_SIZE];
 static volatile BUFTYPE rx_buffer[RX_BUFFER_SIZE];
 static volatile uint8_t transmitting = 0;
+static volatile uint8_t linbreak = 0;
 #if defined(KINETISK)
   static volatile uint8_t *transmit_pin=NULL;
   #define transmit_assert()   *transmit_pin = 1
@@ -141,9 +142,11 @@ void serial2_format(uint32_t format)
 	if (format & 0x20) c |= 0x10;		// tx invert
 	UART1_C3 = c;
 #ifdef SERIAL_9BIT_SUPPORT
+#if defined(KINETISK)
 	c = UART1_C4 & 0x1F;
 	if (format & 0x08) c |= 0x20;		// 9 bit mode with parity (requires 10 bits)
 	UART1_C4 = c;
+#endif
 	use9Bits = format & 0x80;
 #endif
 	// UART1_C1.0 = parity, 0=even, 1=odd
@@ -300,6 +303,15 @@ int serial2_peek(void)
 	return rx_buffer[tail];
 }
 
+int serial2_linbreak(void)
+{
+	if(linbreak) {
+		linbreak = 0;
+		return 1;
+	}
+	return 0;
+}
+
 void serial2_clear(void)
 {
 #ifdef HAS_KINETISK_UART1_FIFO
@@ -318,6 +330,9 @@ void serial2_clear(void)
 //   Receive data above watermark   UART_S1_RDRF
 //   LIN break detect               UART_S2_LBKDIF
 //   RxD pin active edge            UART_S2_RXEDGIF
+
+#define UART_S2_LBKDIF 0x80
+#define UART_S2_LBKDE 0x02
 
 void uart1_status_isr(void)
 {
@@ -385,6 +400,9 @@ void uart1_status_isr(void)
 		if (UART1_S1 & UART_S1_TDRE) UART1_C2 = C2_TX_COMPLETING;
 	}
 #else
+	if (UART1_S1 & UART_S1_FE) {
+		linbreak = 1;
+	}
 	if (UART1_S1 & UART_S1_RDRF) {
 		n = UART1_D;
 		if (use9Bits && (UART1_C3 & 0x80)) n |= 0x100;
@@ -415,6 +433,7 @@ void uart1_status_isr(void)
 		if (transmit_pin) transmit_deassert();
 		UART1_C2 = C2_TX_INACTIVE;
 	}
+	c = UART1_S2;
 }
 
 

@@ -131,9 +131,11 @@ void serial3_format(uint32_t format)
         if (format & 0x20) c |= 0x10;           // tx invert
         UART2_C3 = c;
 #ifdef SERIAL_9BIT_SUPPORT
+#if defined(KINETISK)
         c = UART2_C4 & 0x1F;
         if (format & 0x08) c |= 0x20;           // 9 bit mode with parity (requires 10 bits)
         UART2_C4 = c;
+#endif
         use9Bits = format & 0x80;
 #endif
 }

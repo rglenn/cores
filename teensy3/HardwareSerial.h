@@ -34,7 +34,7 @@
 #include "kinetis.h"
 
 // uncomment to enable 9 bit formats
-//#define SERIAL_9BIT_SUPPORT
+#define SERIAL_9BIT_SUPPORT
 
 
 #define SERIAL_7E1 0x02
@@ -138,6 +138,7 @@ int serial2_available(void);
 int serial2_getchar(void);
 int serial2_peek(void);
 void serial2_clear(void);
+int serial2_linbreak(void);
 
 void serial3_begin(uint32_t divisor);
 void serial3_format(uint32_t format);
@@ -196,7 +197,7 @@ class HardwareSerial2 : public HardwareSerial
 public:
 	virtual void begin(uint32_t baud) { serial2_begin(BAUD2DIV2(baud)); }
 	virtual void begin(uint32_t baud, uint32_t format) {
-					  serial2_begin(BAUD2DIV(baud));
+					  serial2_begin(BAUD2DIV2(baud));
 					  serial2_format(format); }
 	virtual void end(void)		{ serial2_end(); }
 	virtual void transmitterEnable(uint8_t pin) { serial2_set_transmit_pin(pin); }
@@ -217,6 +218,7 @@ public:
 					  serial2_write((const uint8_t *)str, len);
 					  return len; }
 	virtual size_t write9bit(uint32_t c)	{ serial2_putchar(c); return 1; }
+	virtual size_t linbreak(void)	{ return serial2_linbreak(); }
 };
 extern HardwareSerial2 Serial2;
 extern void serialEvent2(void);
