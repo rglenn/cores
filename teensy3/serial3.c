@@ -117,26 +117,25 @@ void serial3_begin(uint32_t divisor)
 
 void serial3_format(uint32_t format)
 {
-        uint8_t c;
+	uint8_t c;
 
-        c = UART2_C1;
-        c = (c & ~0x13) | (format & 0x03);      // configure parity
-        if (format & 0x04) c |= 0x10;           // 9 bits (might include parity)
-        UART2_C1 = c;
-        if ((format & 0x0F) == 0x04) UART2_C3 |= 0x40; // 8N2 is 9 bit with 9th bit always 1
-        c = UART2_S2 & ~0x10;
-        if (format & 0x10) c |= 0x10;           // rx invert
-        UART2_S2 = c;
-        c = UART2_C3 & ~0x10;
-        if (format & 0x20) c |= 0x10;           // tx invert
-        UART2_C3 = c;
+	c = UART2_C1;
+	c = (c & ~0x13) | (format & 0x03);	// configure parity
+	if (format & 0x04) c |= 0x10;		// 9 bits (might include parity)
+	UART2_C1 = c;
+	if ((format & 0x0F) == 0x04) UART2_C3 |= 0x40; // 8N2 is 9 bit with 9th bit always 1
+	c = UART2_S2 & ~0x10;
+	if (format & 0x10) c |= 0x10;		// rx invert
+	UART2_S2 = c;
+	c = UART2_C3 & ~0x10;
+	if (format & 0x20) c |= 0x10;		// tx invert
+	UART2_C3 = c;
 #ifdef SERIAL_9BIT_SUPPORT
 #if defined(KINETISK)
-        c = UART2_C4 & 0x1F;
-        if (format & 0x08) c |= 0x20;           // 9 bit mode with parity (requires 10 bits)
-        UART2_C4 = c;
-#endif
-        use9Bits = format & 0x80;
+	c = UART2_C4 & 0x1F;
+	if (format & 0x08) c |= 0x20;		// 9 bit mode with parity (requires 10 bits)
+	UART2_C4 = c;
+	use9Bits = format & 0x80;
 #endif
 }
 
@@ -161,6 +160,32 @@ void serial3_set_transmit_pin(uint8_t pin)
 	#if defined(KINETISL)
 	transmit_mask = digitalPinToBitMask(pin);
 	#endif
+}
+
+int serial3_set_rts(uint8_t pin)
+{
+	if (!(SIM_SCGC4 & SIM_SCGC4_UART2)) return 0;
+	if (pin == 2) {
+		CORE_PIN2_CONFIG = PORT_PCR_MUX(3);
+	} else {
+		UART2_MODEM &= ~UART_MODEM_RXRTSE;
+		return 0;
+	}
+	UART2_MODEM |= UART_MODEM_RXRTSE;
+	return 1;
+}
+
+int serial3_set_cts(uint8_t pin)
+{
+	if (!(SIM_SCGC4 & SIM_SCGC4_UART2)) return 0;
+	if (pin == 14) {
+		CORE_PIN14_CONFIG = PORT_PCR_MUX(3); // TODO: weak pullup or pulldown?
+	} else {
+		UART2_MODEM &= ~UART_MODEM_TXCTSE;
+		return 0;
+	}
+	UART2_MODEM |= UART_MODEM_TXCTSE;
+	return 1;
 }
 
 void serial3_putchar(uint32_t c)
@@ -255,11 +280,11 @@ void serial3_clear(void)
 
 // status interrupt combines 
 //   Transmit data below watermark  UART_S1_TDRE
-//   Transmit complete              UART_S1_TC
-//   Idle line                      UART_S1_IDLE
+//   Transmit complete		    UART_S1_TC
+//   Idle line			    UART_S1_IDLE
 //   Receive data above watermark   UART_S1_RDRF
-//   LIN break detect               UART_S2_LBKDIF
-//   RxD pin active edge            UART_S2_RXEDGIF
+//   LIN break detect		    UART_S2_LBKDIF
+//   RxD pin active edge	    UART_S2_RXEDGIF
 
 void uart2_status_isr(void)
 {
