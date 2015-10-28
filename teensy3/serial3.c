@@ -135,6 +135,7 @@ void serial3_format(uint32_t format)
 	c = UART2_C4 & 0x1F;
 	if (format & 0x08) c |= 0x20;		// 9 bit mode with parity (requires 10 bits)
 	UART2_C4 = c;
+#endif
 	use9Bits = format & 0x80;
 #endif
 }
