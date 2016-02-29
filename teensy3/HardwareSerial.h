@@ -177,6 +177,8 @@ public:
 					  serial_format(format); }
 	virtual void end(void)		{ serial_end(); }
 	virtual void transmitterEnable(uint8_t pin) { serial_set_transmit_pin(pin); }
+	virtual bool attachRts(uint8_t pin) { return serial_set_rts(pin); }
+	virtual bool attachCts(uint8_t pin) { return serial_set_cts(pin); }
 	virtual int available(void)     { return serial_available(); }
 	virtual int peek(void)          { return serial_peek(); }
 	virtual int read(void)          { return serial_getchar(); }
@@ -194,6 +196,7 @@ public:
 					  serial_write((const uint8_t *)str, len);
 					  return len; }
 	virtual size_t write9bit(uint32_t c)	{ serial_putchar(c); return 1; }
+	operator bool()			{ return true; }
 };
 extern HardwareSerial Serial1;
 extern void serialEvent1(void);
@@ -207,6 +210,8 @@ public:
 					  serial2_format(format); }
 	virtual void end(void)		{ serial2_end(); }
 	virtual void transmitterEnable(uint8_t pin) { serial2_set_transmit_pin(pin); }
+	virtual bool attachRts(uint8_t pin) { return serial2_set_rts(pin); }
+	virtual bool attachCts(uint8_t pin) { return serial2_set_cts(pin); }
 	virtual int available(void)     { return serial2_available(); }
 	virtual int peek(void)          { return serial2_peek(); }
 	virtual int read(void)          { return serial2_getchar(); }
@@ -225,6 +230,7 @@ public:
 					  return len; }
 	virtual size_t write9bit(uint32_t c)	{ serial2_putchar(c); return 1; }
 	virtual size_t linbreak(void)	{ return serial2_linbreak(); }
+	operator bool()			{ return true; }
 };
 extern HardwareSerial2 Serial2;
 extern void serialEvent2(void);
@@ -238,6 +244,8 @@ public:
 					  serial3_format(format); }
 	virtual void end(void)          { serial3_end(); }
 	virtual void transmitterEnable(uint8_t pin) { serial3_set_transmit_pin(pin); }
+	virtual bool attachRts(uint8_t pin) { return serial3_set_rts(pin); }
+	virtual bool attachCts(uint8_t pin) { return serial3_set_cts(pin); }
 	virtual int available(void)     { return serial3_available(); }
 	virtual int peek(void)          { return serial3_peek(); }
 	virtual int read(void)          { return serial3_getchar(); }
@@ -255,6 +263,7 @@ public:
 					  serial3_write((const uint8_t *)str, len);
 					  return len; }
 	virtual size_t write9bit(uint32_t c)	{ serial3_putchar(c); return 1; }
+	operator bool()			{ return true; }
 };
 extern HardwareSerial3 Serial3;
 extern void serialEvent3(void);
